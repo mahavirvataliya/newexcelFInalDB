@@ -47,7 +47,7 @@ class MaatwebsiteDemoController extends Controller
         }
     });
     
-    Artisan::call('make:model',['name'=>$fileName]);
+    Artisan::call('make:model',['name'=>ucfirst($fileName)]);
     $insert =[];
 
     if(!empty($data) && $data->count()){
@@ -61,14 +61,19 @@ class MaatwebsiteDemoController extends Controller
             }
     }
     }
-    $data = DB::table($fileName.'s')->select('*')->get()->toarray();
-    dd('Insert Record successfully.');
-    return Excel::create('itsolutionstuff_example', function($excel) use ($data) {
-    $excel->sheet('mySheet', function($sheet) use ($data)
+    //$data1 = DB::table($fileName)->select('*')->get()->toarray();
+   // dd('Insert Record successfully.');
+   //dd($data1);
+    $my_var = '\App\\'.ucfirst($fileName);
+    $cclas = new $my_var;
+   $data1 = $cclas::get()->toArray();
+    return Excel::create($fileName, function($excel) use ($data1) {
+    $excel->sheet('mySheet', function($sheet) use ($data1)
             {
-    $sheet->fromArray($data);
+    $sheet->fromArray($data1);
             });
-    })->download($type);
+    })->download('xls');
+
     dd(DB::table($fileName.'s')->select('*')->get());
 
     dd('Insert Record successfully.');
