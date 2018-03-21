@@ -18,3 +18,4 @@ Route::get('/home', function () {
 Route::get('/', 'MaatwebsiteDemoController@importExport');
 Route::get('downloadExcel/{type}', 'MaatwebsiteDemoController@downloadExcel');
 Route::post('/', 'MaatwebsiteDemoController@importExcel');
+Route::post('/getxls', 'MaatwebsiteDemoController@exportxls');

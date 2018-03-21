@@ -13,17 +13,27 @@ class MaatwebsiteDemoController extends Controller
 {
     public function importExport()
     {
-    return view('importExport');
+        $message = '';
+        $tables = DB::select('SHOW TABLES'); 
+       
+    return view('importExport',compact(['tables','message']));
     }
     public function downloadExcel($type)
     {
-    // $data = Item::get()->toArray();
-    // return Excel::create('itsolutionstuff_example', function($excel) use ($data) {
-    // $excel->sheet('mySheet', function($sheet) use ($data)
-    //         {
-    // $sheet->fromArray($data);
-    //         });
-    // })->download($type);
+        
+    }
+    public function exportxls(Request $request)
+    {
+        $model = substr($request->tablename, 0, -1);
+        $my_var = '\App\\'.ucfirst($model);
+        $cclas = new $my_var;
+       $data1 = $cclas::get()->toArray();
+        return Excel::create($model, function($excel) use ($data1) {
+        $excel->sheet('mySheet', function($sheet) use ($data1)
+                {
+                     $sheet->fromArray($data1);
+                });
+        })->download('xls');
     }
     public function importExcel(Request $request)
     {
@@ -61,23 +71,14 @@ class MaatwebsiteDemoController extends Controller
             }
     }
     }
-    //$data1 = DB::table($fileName)->select('*')->get()->toarray();
-   // dd('Insert Record successfully.');
-   //dd($data1);
+   
     $my_var = '\App\\'.ucfirst($fileName);
     $cclas = new $my_var;
    $data1 = $cclas::get()->toArray();
-    return Excel::create($fileName, function($excel) use ($data1) {
-    $excel->sheet('mySheet', function($sheet) use ($data1)
-            {
-    $sheet->fromArray($data1);
-            });
-    })->download('xls');
 
-    dd(DB::table($fileName.'s')->select('*')->get());
-
-    dd('Insert Record successfully.');
- 
+    $message = 'Insert Record successfully.';
+    $tables = DB::select('SHOW TABLES'); 
+    return view('importExport',compact(['tables','message']));
     }
     return back();
     }
