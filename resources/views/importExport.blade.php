@@ -31,7 +31,7 @@
   <select class="form-control" id="sel1" name="tablename">
   <option selected>None</option>
   @foreach($tables as $table)
-  <option value="{{ $table->Tables_in_exceltodb1 }} ">{{ $table->Tables_in_exceltodb1 }} </option>
+  <option value="{{ $table }} ">{{ $table }} </option>
 @endforeach
   </select>
 </div>

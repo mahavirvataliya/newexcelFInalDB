@@ -11,29 +11,39 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 class MaatwebsiteDemoController extends Controller
 {
+    public function getAllModels()
+    {
+        $path = app_path().'/Models' ;
+        function getModels($path){
+            $out = [];
+            $results = scandir($path);
+            foreach ($results as $result) {
+                if ($result === '.' or $result === '..') continue;
+                $filename = $path . '/' . $result;
+                if (is_dir($filename)) {
+                    $out = array_merge($out, getModels($filename));
+                }else{
+                    $out[] = substr($filename,0,-4);
+                }
+            }
+            return $out;
+        }
+        $abcd = getModels($path);
+        $xyz = substr( (string)$abcd[0], strrpos( (string)$abcd[0], '/') + 1);
+        $tables = array();
+        foreach($abcd as $abc)
+        {
+            $xyz = substr( (string)$abc, strrpos( (string)$abc, '/') + 1);
+            $tables[] = $xyz;
+        }
+        return $tables;
+    }
     public function importExport()
     {
-        $path = app_path() ;
-
-function getModels($path){
-    $out = [];
-    $results = scandir($path);
-    foreach ($results as $result) {
-        if ($result === '.' or $result === '..') continue;
-        $filename = $path . '/' . $result;
-        if (is_dir($filename)) {
-            $out = array_merge($out, getModels($filename));
-        }else{
-            $out[] = substr($filename,0,-4);
-        }
-    }
-    return $out;
-}
-
-dd(getModels($path));
-
+        $tables = $this->getAllModels();
+        //dd($tabless);
         $message = '';
-        $tables = DB::select('SHOW TABLES'); 
+        //$tables = DB::select('SHOW TABLES'); 
        
     return view('importExport',compact(['tables','message']));
     }
@@ -43,8 +53,8 @@ dd(getModels($path));
     }
     public function exportxls(Request $request)
     {
-        $model = substr($request->tablename, 0, -1);
-        $my_var = '\App\\'.ucfirst($model);
+        $model = $request->tablename;
+        $my_var = '\App\Models\\'.ucfirst($model);
         $cclas = new $my_var;
        $data1 = $cclas::get()->toArray();
         return Excel::create($model, function($excel) use ($data1) {
@@ -69,8 +79,8 @@ dd(getModels($path));
     $columns = array_keys($data->first()->toarray());
     //dd($columns);
 
-    Artisan::call('make:model',['name'=>ucfirst($fileName)]);
-    $my_var = '\App\\'.ucfirst($fileName);
+    Artisan::call('make:model',['name'=>'Models\\'.ucfirst($fileName) ]);
+    $my_var = '\App\Models\\'.ucfirst($fileName);
     $cclas = new $my_var;
     $tablename = $cclas->getTable();
 
@@ -81,8 +91,6 @@ dd(getModels($path));
             $table->string($column);
         }
     });
-    
-   
     $insert =[];
 
     if(!empty($data) && $data->count()){
@@ -97,18 +105,13 @@ dd(getModels($path));
     }
     }
    
-    $my_var = '\App\\'.ucfirst($fileName);
+    $my_var = '\App\Models\\'.ucfirst($fileName);
     $cclas = new $my_var;
    $data1 = $cclas::get()->toArray();
   
-
     $message = 'Insert Record successfully.';
-    $tables = DB::select('SHOW TABLES'); 
-
-    
-        
-
-
+    //$tables = DB::select('SHOW TABLES'); 
+    $tables = $this->getAllModels();
     return view('importExport',compact(['tables','message']));
     }
     return back();
