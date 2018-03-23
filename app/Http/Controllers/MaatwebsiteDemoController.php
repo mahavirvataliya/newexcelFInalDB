@@ -73,22 +73,37 @@ class MaatwebsiteDemoController extends Controller
     $fileName = substr($filen, 0 , (strrpos($filen, ".")));   
 
     $data = Excel::selectSheetsByIndex(0)->load($path, function($reader) {
+        $reader->takeRows(100);
     })->get();
 
-    //dd($data->first()->firstname);
     $columns = array_keys($data->first()->toarray());
-    //dd($columns);
+    
+      foreach($columns as $column)
+      {
+        $cc = array_column($data->toarray(),$column);
+        $lengths[$column] = array_map('strlen',$cc);
+      }
+      $lenc = array();
+      foreach($lengths as $key => $value)
+      {
+          $lenc[$key] = max($value);
+      }
+     
 
     Artisan::call('make:model',['name'=>'Models\\'.ucfirst($fileName) ]);
     $my_var = '\App\Models\\'.ucfirst($fileName);
     $cclas = new $my_var;
     $tablename = $cclas->getTable();
 
-    Schema::create($tablename, function (Blueprint $table) use ($columns) {
+
+    Schema::create($tablename, function (Blueprint $table) use ($columns,$lenc) {
         $table->increments('id');
         foreach($columns as $column)
         {
-            $table->string($column);
+            if($lenc[$column] > 254)
+                $table->longText($column);
+            else
+                $table->string($column);
         }
     });
     $insert =[];
@@ -100,7 +115,8 @@ class MaatwebsiteDemoController extends Controller
            $insert[$column] = $value->$column.'';
         }
         if(!empty($insert)){
-            DB::table($tablename)->insert($insert);
+            if(max(array_map('strlen',$insert))>1)
+                 DB::table($tablename)->insert($insert);
             }
     }
     }
